@@ -85,7 +85,7 @@ consumer router ──TCP──▶ relay (public host, :3333) ══ tunnel ═�
 | Wizard and screens | Not started in this repo |
 | App Attest code identity, consumer-side check | Built in a router fork; refuses unknown code hashes (unit tests) |
 | Reproducible, CI-built engine | v1 engine: unsigned rebuilds on two Macs matched the signed build; CI build and second-party rebuild not done |
-| Root cannot read the engine's process memory | Measured on one M5 (macOS 27.2 beta, 2026-10-12): task port and dtrace refused; control process readable |
+| Root cannot read a hardened engine child's memory | Measured on one M5 (macOS 27.2 beta, 2026-10-12) on a test process the engine launched the way it launches the model: task, read and inspect ports and dtrace refused; an ordinary control process was readable |
 | GPU memory through IOKit | Not tested |
 | Swap | Root can open the swap files; encryption reported by macOS; readable-prompt search not valid yet |
 | Panic dumps | Stated assumption (XNU source: log and stack snapshot only in Full Security) |
