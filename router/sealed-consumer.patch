@@ -72,10 +72,10 @@ index dd374ea2..51db0791 100644
  	cancelServer()
 diff --git a/proxy-router/cmd/sealed-chat/main.go b/proxy-router/cmd/sealed-chat/main.go
 new file mode 100644
-index 00000000..55be7e29
+index 00000000..2df1856b
 --- /dev/null
 +++ b/proxy-router/cmd/sealed-chat/main.go
-@@ -0,0 +1,187 @@
+@@ -0,0 +1,188 @@
 +// sealed-chat is a consumer for a sealed engine: it verifies the engine
 +// exactly as a consumer node does (Apple App Attest chain, app ID, the
 +// running binary's CD hash against the published list, the session
@@ -119,6 +119,7 @@ index 00000000..55be7e29
 +	noCode := flag.Bool("unverified-code-identity", false, "DIAGNOSTIC ONLY: accept any binary of the app ID (when the attestation carries no CD hash); the run is then NOT a code-identity check")
 +	replyFile := flag.String("reply-file", "", "also write the opened reply bytes to this file (for byte-exact checks)")
 +	temperature := flag.Float64("temperature", 0, "sampling temperature sent in the sealed request (0 = greedy)")
++	minOS := flag.String("min-os", "27.0", "minimum macOS version required in the Apple attestation (e.g. 27.0.1)")
 +	flag.Parse()
 +	pin, err1 := hex.DecodeString(*cdhash)
 +	w, err2 := hex.DecodeString(*weights)
@@ -126,9 +127,9 @@ index 00000000..55be7e29
 +		fmt.Fprintln(os.Stderr, "need --app-id, --cdhash (64 hex, the full SHA-256 CD hash) and --weights (64 hex)")
 +		os.Exit(64)
 +	}
-+	cfg := appleattest.Config{AppID: *appID, ExpectedCDHashes: [][]byte{pin}}
++	cfg := appleattest.Config{AppID: *appID, ExpectedCDHashes: [][]byte{pin}, MinOSVersion: *minOS}
 +	if *inspect || *noCode {
-+		cfg = appleattest.Config{AppID: *appID, AllowAnyCode: true}
++		cfg = appleattest.Config{AppID: *appID, AllowAnyCode: true, MinOSVersion: *minOS}
 +	}
 +	if *noCode {
 +		fmt.Println("WARN code identity NOT verified: --unverified-code-identity accepts any binary signed for this app ID")
@@ -190,7 +191,7 @@ index 00000000..55be7e29
 +		fmt.Printf("assertion: CD hash %x counter %d weights %x\n", rep.CDHash, rep.Counter, rep.WeightsHash)
 +		return
 +	}
-+	fmt.Printf("PASS apple chain: App Attest certificate chain ends at Apple's root; app %s; environment %s; OS %s %s\n", *appID, *env, verified.OS.Version, verified.OS.Build)
++	fmt.Printf("PASS apple chain: App Attest certificate chain ends at Apple's root; app %s; environment %s; OS %s %s (>= %s)\n", *appID, *env, verified.OS.Version, verified.OS.Build, *minOS)
 +
 +	key, err := sealed.NewClientKey()
 +	if err != nil {
@@ -1246,10 +1247,10 @@ index 00000000..4cff2277
 +-----END CERTIFICATE-----
 diff --git a/proxy-router/internal/attestation/appleattest/appleattest.go b/proxy-router/internal/attestation/appleattest/appleattest.go
 new file mode 100644
-index 00000000..6fe80eb9
+index 00000000..202608aa
 --- /dev/null
 +++ b/proxy-router/internal/attestation/appleattest/appleattest.go
-@@ -0,0 +1,601 @@
+@@ -0,0 +1,604 @@
 +// Package appleattest verifies Apple App Attest attestations and assertions
 +// locally (no third-party portal), following Apple's "Validating apps that
 +// connect to your server" procedure, and exposes the authenticator-data
@@ -1602,6 +1603,9 @@ index 00000000..6fe80eb9
 +	}
 +	return &Assertion{Counter: ad.counter, Extensions: ad.ext}, nil
 +}
++
++// Validate checks that the configuration is well-formed.
++func (c *Config) Validate() error { return c.validate() }
 +
 +func (c *Config) validate() error {
 +	if c.AppID == "" {
@@ -5465,10 +5469,10 @@ index 4a074f8e..e6373768 100644
  type CIDReq struct {
 diff --git a/proxy-router/internal/proxyapi/sealed_sender.go b/proxy-router/internal/proxyapi/sealed_sender.go
 new file mode 100644
-index 00000000..c8c15c43
+index 00000000..f834c293
 --- /dev/null
 +++ b/proxy-router/internal/proxyapi/sealed_sender.go
-@@ -0,0 +1,518 @@
+@@ -0,0 +1,527 @@
 +package proxyapi
 +
 +import (
@@ -5535,6 +5539,7 @@ index 00000000..c8c15c43
 +//	SEALED_MODEL_WEIGHTS comma-separated "<modelID hex>:<weights SHA-256 hex>" pins (required);
 +//	                     a model may appear several times to allow several weights versions
 +//	SEALED_ENV           "production" (default) or "development" App Attest environment
++//	SEALED_MIN_OS        minimum macOS version in the Apple attestation (default "27.0")
 +func SealedConfigFromEnv() (*SealedConfig, error) {
 +	appID := strings.TrimSpace(os.Getenv("SEALED_APP_ID"))
 +	if appID == "" {
@@ -5597,8 +5602,16 @@ index 00000000..c8c15c43
 +	default:
 +		return nil, fmt.Errorf("SEALED_ENV must be production or development")
 +	}
++	minOS := strings.TrimSpace(os.Getenv("SEALED_MIN_OS"))
++	if minOS == "" {
++		minOS = "27.0"
++	}
++	attCfg := appleattest.Config{AppID: appID, Environment: env, ExpectedCDHashes: cdhashes, MinOSVersion: minOS}
++	if err := attCfg.Validate(); err != nil {
++		return nil, fmt.Errorf("SEALED_MIN_OS: %w", err)
++	}
 +	return &SealedConfig{
-+		Attest:         appleattest.Config{AppID: appID, Environment: env, ExpectedCDHashes: cdhashes},
++		Attest:         attCfg,
 +		Models:         models,
 +		PinFromListing: pinFromListing,
 +	}, nil
@@ -5989,10 +6002,10 @@ index 00000000..c8c15c43
 +}
 diff --git a/proxy-router/internal/proxyapi/sealed_sender_test.go b/proxy-router/internal/proxyapi/sealed_sender_test.go
 new file mode 100644
-index 00000000..7f8aa078
+index 00000000..26bbdd6b
 --- /dev/null
 +++ b/proxy-router/internal/proxyapi/sealed_sender_test.go
-@@ -0,0 +1,461 @@
+@@ -0,0 +1,470 @@
 +package proxyapi
 +
 +import (
@@ -6131,6 +6144,15 @@ index 00000000..7f8aa078
 +	require.NoError(t, err)
 +	require.Len(t, c.Models, 1)
 +	require.Len(t, c.Models[common.HexToHash(m)], 2, "two weights versions for one model")
++	require.Equal(t, "27.0", c.Attest.MinOSVersion, "default minimum macOS version is 27.0")
++	t.Setenv("SEALED_MIN_OS", "27.0.1")
++	c, err = SealedConfigFromEnv()
++	require.NoError(t, err)
++	require.Equal(t, "27.0.1", c.Attest.MinOSVersion)
++	t.Setenv("SEALED_MIN_OS", "v27.0")
++	_, err = SealedConfigFromEnv()
++	require.Error(t, err, "bad MinOSVersion rejected at startup")
++	t.Setenv("SEALED_MIN_OS", "")
 +	t.Setenv("SEALED_MODEL_WEIGHTS", m)
 +	_, err = SealedConfigFromEnv()
 +	require.Error(t, err, "pin without weights rejected")

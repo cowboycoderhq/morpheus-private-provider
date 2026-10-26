@@ -1,6 +1,6 @@
 # Open items closure — 2026-10-22
 
-> **SUPERSEDED 2026-10-24** by `OPEN-ITEMS-CLOSURE-2026-10-24.md`, which is written against the accepted build (child `<h22>`, engine `<h25>`). In particular the T2 row below ("OPEN, CONFIRMED CHANNEL") describes the profile before the IOSurface deny, and the P2/P3/P5c rows cite run 4 on engine `<h6>`. Kept unchanged below as the 2026-10-22 record.
+> **SUPERSEDED 2026-10-24** by `OPEN-ITEMS-CLOSURE-2026-10-24.md`, which is written against the accepted build (child `<h23>`, engine `<h27>`). In particular the T2 row below ("OPEN, CONFIRMED CHANNEL") describes the profile before the IOSurface deny, and the P2/P3/P5c rows cite run 4 on engine `<h6>`. Kept unchanged below as the 2026-10-22 record.
 
 
 Every item from the DeepSeek review, the TEE evidence list and the tracked list, with its disposition. "Closed" means evidence exists at the cited path. "Structural" means the limit comes from macOS or Apple policy and cannot be removed by this project. "Operator" means only the operator can act (Apple portal, policy, or a machine cycle).

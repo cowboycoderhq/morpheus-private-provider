@@ -1,6 +1,7 @@
 // sealed_r8 — see include/sealed_r8.h. Profile builder and arm patterns
 // adapted from the child's sealed_r5.mm (R5); plain C, no Metal.
 #include <sealed_r8.h>
+#include "sealed_posture.h"
 
 #include <bootstrap.h>
 #include <dirent.h>
@@ -428,7 +429,11 @@ static int build_profile(char *profile, size_t cap, const char *const **params_o
 #endif
              // App Attest: generateAssertion for /session and /probe goes to
              // devicecheckd (measured: denied -> "assertion refused", 503).
-             "(allow mach-lookup (global-name \"com.apple.devicecheckd\"))\n",
+             "(allow mach-lookup (global-name \"com.apple.devicecheckd\"))\n"
+             // Runtime posture check (sealed_posture_runtime_check): only
+             // vm.swapusage and kern.hibernatemode. kern.bootargs and
+             // KERN_PROCARGS2 remain denied and are checked by the R8 arms.
+             "(allow sysctl-read (sysctl-name \"vm.swapusage\") (sysctl-name \"kern.hibernatemode\"))\n",
              cap)) return -1;
     // Later rules win: the Data-volume firmlinks inside the allowed subpaths (R5).
     if (pcat(profile,
@@ -521,6 +526,11 @@ int sealed_r8_enter(const sealed_r8_config *cfg, char *why, size_t why_len) {
         int k = kill(cfg->child_pid, 0);
         say("sealed-r8 selftest child-signal0 rc=%d errno=%d %s", k, k ? errno : 0, k == 0 ? "allowed" : "REFUSED");
         if (k != 0) { set_why("child-signal0 is refused in the sandbox"); goto out; }
+        char pwhy[160];
+        pwhy[0] = '\0';
+        int prc = sealed_posture_runtime_check(pwhy, sizeof pwhy);
+        say("sealed-r8 selftest posture-runtime rc=%d %s", prc, prc == 0 ? "allowed" : pwhy);
+        if (prc != 0) { set_why("posture-runtime is refused in the sandbox: %s", pwhy); goto out; }
     }
     say("sealed-r8 selftest done: all denials held");
     rc = 0;

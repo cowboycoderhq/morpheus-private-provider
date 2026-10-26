@@ -1,10 +1,10 @@
-# P6 child compare (2026-10-25): child used by P6 vs the accepted child <h17>
-a scratch/ckv-pin-a/splash cdhash <h21> size 3307072 signature_offset 3300368
-b child/splash cdhash <h17> size 3307072 signature_offset 3300368
+# P6 child compare (2026-10-25): child used by P6 vs the accepted child <h25>
+a scratch/ckv-pin-a/splash cdhash <h22> size 3307072 signature_offset 3300368
+b child/splash cdhash <h25> size 3307072 signature_offset 3300368
 same size before signature: True
 differing bytes before the signature: 77 in 5 runs
   0x788-0x797 (16 bytes) context b: b'd\x00\x00\x00\x00\x00\x00\x00\x1b\x00\x00\x00\x18\x00\x00\x00\x1cy\x91\xc0\x1d\x1070\xa4\xd5\xf80\x85d\xf5\xbd2\x00\x00'
   0xcebfd-0xcebfe (2 bytes) context b: b'plash_metal\x00src-e6dd5'
-  0xcec00-0xcec1a (27 bytes) context b: b'sh_metal\x00src-<h40>'
-  0xcec1c-0xcec26 (11 bytes) context b: b'<h41>'
-  0xcec28-0xcec3c (21 bytes) context b: b'<h42>\x00ve'
+  0xcec00-0xcec1a (27 bytes) context b: b'sh_metal\x00src-<h42>'
+  0xcec1c-0xcec26 (11 bytes) context b: b'<h43>'
+  0xcec28-0xcec3c (21 bytes) context b: b'<h44>\x00ve'

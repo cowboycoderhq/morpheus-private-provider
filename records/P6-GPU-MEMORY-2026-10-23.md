@@ -1,6 +1,6 @@
 # P6: can root read the prompt or the reply from GPU memory? (2026-10-23)
 
-Host: M5, Mac17,7, macOS 27.2 beta `27.2-beta`, SIP enabled (`csrutil status`), `kern.bootargs` empty. Production child pin `<h21>`. Running engine: `SealedEngineV2` pid 75296. Its production child: pid 75418 (`child/splash`, CD hash = pin). Rules: `scratch/TASK-gpu-tests.md`. Task: `scratch/TASK-P6.md`.
+Host: M5, Mac17,7, macOS 27.2 beta `27.2-beta`, SIP enabled (`csrutil status`), `kern.bootargs` empty. Production child pin `<h22>`. Running engine: `SealedEngineV2` pid 75296. Its production child: pid 75418 (`child/splash`, CD hash = pin). Rules: `scratch/TASK-gpu-tests.md`. Task: `scratch/TASK-P6.md`.
 
 Status: done. User-level arms (section 5.1), root arms (section 5.2 and "Root result"), suite 95/95 (section 8). Corrected 2026-10-24 after audit round 2: see "Corrections" at the end.
 
@@ -64,7 +64,7 @@ Criteria, fixed before the runs:
 
 ### 5.1 User-level run (stored)
 
-Run: `neg/P6/p6-user.sh 75418`, <date> <time> to <time> local, uid 501. Output: `neg/P6/user-20261023-<time>.txt`. Targets: `p6-victim-gta` pid 20001, `p6-victim` pid 20182, `p6-victim-hr` pid 20326, production child pid 75418 (pin `<h21>…`). The child was alive after the run.
+Run: `neg/P6/p6-user.sh 75418`, <date> <time> to <time> local, uid 501. Output: `neg/P6/user-20261023-<time>.txt`. Targets: `p6-victim-gta` pid 20001, `p6-victim` pid 20182, `p6-victim-hr` pid 20326, production child pid 75418 (pin `<h22>…`). The child was alive after the run.
 
 | Arm | `get-task-allow` victim (control) | ordinary victim | hardened victim | production child | Grade |
 |---|---|---|---|---|---|
@@ -140,7 +140,7 @@ My first run (<time> to <time>) gave 94/95. `R6-plant-snmp` refused with the cor
 
 Files: `neg/P6/root-20261023-<time>.txt`, `neg/P6/gcore-retry-20261024-<time>.txt`.
 
-| Arm | Sealed child 75418 (CD hash <h21>, pin matches) | Control | Verdict |
+| Arm | Sealed child 75418 (CD hash <h22>, pin matches) | Control | Verdict |
 |---|---|---|---|
 | A1 root task port + mach_vm_read | `task_for_pid kr=5`, `task_read_for_pid kr=-1`, 0 bytes | Ordinary decoy: port granted, 7,429,144,576 bytes read, canary 1024 times | CLOSED |
 | A2 root `gcore` (`cs.debugger.read.root`) | `rc=77 insufficient privilege`, no core (3 runs) | Ordinary decoy: `rc=0`, core 7,414,104,064 bytes, canary 1024 times | CLOSED |
@@ -166,5 +166,5 @@ Stated limits:
 
 - **A3 (`stringdups`, `vmmap`) is INFO, not CLOSED.** As root, `stringdups` refused the ordinary decoy too, so its control did not fire (audit R2-06). The P6 verdict does not change: `gcore` is the content-reaching root tool, and its control fired.
 - **A4 (root GPU client) is INFO, not CLOSED.** It scans only its own address space (`mach_task_self()`), so it had no control on a different process (audit R2-07). The sentence "Each content-reaching arm has a control that read an ordinary process" is true for A1 and A2 only.
-- **Build.** All root arms ran on child `<h21>`. The accepted child is `<h22>`, with the same release code (build-ID recompute and byte compare, audit R2-1). `gcore` has not run on `<h22>` or on the engine (audit R2-08, R2-5-12); a root-kit `gcore` arm is planned.
+- **Build.** All root arms ran on child `<h22>`. The accepted child is `<h23>`, with the same release code (build-ID recompute and byte compare, audit R2-1). `gcore` has not run on `<h23>` or on the engine (audit R2-08, R2-5-12); a root-kit `gcore` arm is planned.
 - **A2 control.** The successful control (`gcore-retry-20261024-<time>.txt`) is valid: same run, same uid 0, folder owned by the decoy uid; child error `rc=77` is different from the earlier control errors `rc=73 open` (audit R2-09). Small gap: the control used a full core and the child arm `-x stack`.

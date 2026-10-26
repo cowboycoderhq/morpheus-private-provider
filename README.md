@@ -4,7 +4,7 @@ A one-click way to put a Mac on the [Morpheus](https://mor.org) network as a
 **private** inference provider. The goal: the consumer's router checks which
 engine and which model answer, and the provider cannot read the prompts.
 
-> **Status: v0.1.0 is a source and measurement release. It is not for
+> **Status: v0.1.1 is a source and measurement release. It is not for
 > production use.** No router on the Morpheus network runs the consumer check
 > today, and no outside party can run it against these pins yet (see
 > [Who can check what](#who-can-check-what)). Nothing goes on a Morpheus
@@ -40,17 +40,17 @@ product:
 | Child CD hash (ad-hoc signature, identifier `sealed.splash`) | `8083a3388742668a68027de726b2a5eaef049ac6` |
 | Child executable, unsigned, SHA-256 | `51499416ad246a5970a77e44af26f8ac78b43bbd7314c37d7fe0100a629180fa` |
 | Child build ID | `src-997348af029254a3c4c679c14adb7bae8c9eea8982aef57fde422ff4ea88231b` |
-| Engine executable, unsigned, SHA-256 | `5b3c9d1ff38f9bbb4e13f3a8e706fbad2b3faa25e5ab17599066b90ebbb1a3e7` |
+| Engine executable, unsigned, SHA-256 | `e7227eb663506ea89015b5ae4e6dc3af3066f3f15bc7d3227f0022ddeb59702d` |
 | Engine CD hash (App Attest) | Withheld in this release (see below) |
 | Model hash (v2: sealed manifest, tokenizer, child CD hash) | `57b2151c5135eb2d7376beab591ad221f6345c8654d8e4220a386747d0bd1477` |
 | Model weights | [`audreyt/Qwen3.8-27B-Splash-abliterated`](https://huggingface.co/audreyt/Qwen3.8-27B-Splash-abliterated) at revision `78a6b379758eb6bf0740ef74581cd3432b144efc` |
-| Source commits (private repos, exported here) | engine `aff678e7`, child `aa32be84`, harness `8f7490b6` |
+| Source commits (private repos, exported here) | engine `0bd75670`, child `aa32be84`, harness `fd591ad3` |
 
-The pins passed level A (138 of 138) and level B (155 PASS and 4 EXEMPT of 159) on the project's first M5 (`records/accept-results-Mac17,7-27.2-beta-20261025ThhmmssZ.md`), at engine commit `beba4427`, child commit `aa32be84` and harness commit `a7f245d0`. The table above names the exported commits. Five code changes came after those accept commits. The router model-hash test uses synthetic bytes. The stake-claimer comment gives no date, duration, or amount. The bundle comment does not name the profile. `matrix.py` reads revoked pins from a file this release omits. `neg/run-ckv.sh` takes the dense binary as an argument. The other later commits are documents.
+The pins passed level A (141 of 141) and level B (158 PASS and 4 EXEMPT of 162) on the project's first M5 (`records/accept-results-Mac17,7-27.2-beta-20261026ThhmmssZ.md`), at engine commit `7a83aa51`, child commit `aa32be84` and harness commit `22bcc434`. The table above names the exported commits. Commits after those accept commits change only documents.
 
 A second Mac, as a second user account of the project,
 rebuilt the child to the same bytes and CD hash, and its engine rebuild
-matched the signed engine (`records/SECOND-MAC-REBUILD-2026-10-25-r5.txt`).
+matched the signed engine (`records/SECOND-MAC-REBUILD-2026-10-26-r6.txt`).
 
 **Why the engine CD hash is withheld:** the CD hash covers the team ID and
 the bundle ID of a borrowed development App ID. With the source public, the
@@ -82,9 +82,20 @@ This list is a summary. The full list is in the claim.
 - **Not a TEE.** Apple Silicon has no memory encryption that locks out the
   owner. A kernel exploit, a GPU driver defect or a macOS defect breaks the
   claim.
-- **The consumer trusts the provider's settings.** No attestation shows the
-  consumer that the Mac runs in Full Security with SIP on, or how swap and
-  sleep are set.
+- **Boot posture and host settings.** No field in the Apple attestation
+  certificate shows the boot mode, SIP, swap encryption, or the sleep setting.
+  Three checks cover them instead: (1) the pinned engine (`sealed_posture.c`)
+  refuses to start unless `csr_get_active_config == 0`, `kern.bootargs` is
+  empty, swap is encrypted, `kern.hibernatemode` is 0 or 3, 0 non-Apple kexts
+  are loaded, and `IODeviceTree:/chosen` reports security mode `1,1,1`, and it
+  re-checks SIP, swap and `hibernatemode` before each request inside its
+  sandbox (`boot-posture`, `boot-posture-unit`, mutant `BAD_CSR`); (2) the
+  consumer checks a minimum macOS version (`MinOSVersion = 27.0` default;
+  `refuse-old-macos`); (3) in our M1 tests (macOS 27.0), Apple's App Attest
+  server refused to issue a certificate for a new key in 4 of 4 weakened boots
+  (`Unexpected ACM requirement: 23`) and keys stopped working across every
+  restart (2 of 2). That App Attest behavior is not documented by Apple and
+  has not been re-run across the 12-cell recoveryOS grid (`A-11`) on the M5.
 - **Length and timing:** root on the provider Mac sees the prompt and reply
   token counts and the timing. The network sees the prompt byte length and
   the reply timing. A refusal status code tells one bit.

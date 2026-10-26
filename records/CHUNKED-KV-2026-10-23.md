@@ -2,7 +2,7 @@
 
 Task: `scratch/TASK-chunked-kv.md`. Replace the fixed dense KV pool with a KV cache that grows on demand and releases on request end. Use only ordinary private `MTLBuffer` objects, never MTL4 sparse mapping. Keep the `IOSurfaceRootUserClient` deny and keep the suite green.
 Host: M5, `Mac17,7`, macOS 27.2 beta `27.2-beta`, uid 501. No `sudo`. Nothing pushed. `child/` was not restaged. `~/projects/morpheus-pnode` was not changed (one script was copied to `scratch/` and run there).
-Input: `review/DENSE-KV-2026-10-23.md` (the dense-pool production child `<h26>…8e0d`, SHA-256 `<h57>…280b0d`, kept as `scratch/ckv-backup-2026-10-23/splash-dense-<h57>`).
+Input: `review/DENSE-KV-2026-10-23.md` (the dense-pool production child `<h28>…8e0d`, SHA-256 `<h59>…280b0d`, kept as `scratch/ckv-backup-2026-10-23/splash-dense-<h59>`).
 
 ## Result
 
@@ -17,7 +17,7 @@ Input: `review/DENSE-KV-2026-10-23.md` (the dense-pool production child `<h26>�
 | Release after a 31,940-token request | Peak 19.163 GiB, 4 s later 18.094 GiB: **1.070 GiB returned**. KV resident after: 289,669,120 bytes (17 chunks). Dense control: 0.141 GiB. | `neg/ckv-2026-10-23-final.txt` |
 | Per-request limit | `min(MAX_CONTEXT, 262,144, budget tokens - 7)`. With the default 16 GiB budget: 262,144 (the model limit). A 119,957-token prompt answered with `MAX_CONTEXT` 131072. The dense pool stopped at 65,529. | `neg/ckv-2026-10-23-final.txt` |
 | Speed delta | **No measurable change.** Over four dense/chunked pairs the decode change was +6 %, -14 %, +4 % and +51 %. The 63,949-token prefill time changed by -3 %, -1 % and -11 % (negative is faster). The dense child alone varied from 24 to 49 tok/s (thermal pressure "fair", one other GPU job). The answer digests were the same on both children. Details in *Speed*. | `neg/CKV/run/bench-*.txt` |
-| New child CD hash (staged form) | **`<h21>`** | see *New child* |
+| New child CD hash (staged form) | **`<h22>`** | see *New child* |
 
 ## Design
 
@@ -121,15 +121,15 @@ Not changed: the non-sealed build paths (they compile the flat kernels and the p
 
 ## Tests
 
-All legs ran on the final binaries (production SHA-256 `<h56>…cb2ce`, notes build `<h58>…96dc`), `neg/run-ckv.sh` <time> to <time>. Temperature 0, `reasoning_effort` none. Footprint is `proc_pid_rusage` `ri_phys_footprint` of the child, sampled every 0.25 s, and once 4 s after the response ("settled").
+All legs ran on the final binaries (production SHA-256 `<h58>…cb2ce`, notes build `<h60>…96dc`), `neg/run-ckv.sh` <time> to <time>. Temperature 0, `reasoning_effort` none. Footprint is `proc_pid_rusage` `ri_phys_footprint` of the child, sampled every 0.25 s, and once 4 s after the response ("settled").
 
 ### Grow (control: the dense child, same prompts)
 
 | Request | Chunked | Dense | Chunk notes (notes build) |
 |---|---|---|---|
-| Kestrel prompt, 244 tokens (inside chunk 0) | `7319-KESTREL, Paris`, digest `<h59>…` | same digest | 1 allocation (the runway) |
-| Kestrel prompt, 623 tokens (across token 512) | `7319-KESTREL, Paris`, digest `<h59>…` | same digest | The pages past the boundary came from the resident runway chunk. Then 1 runway allocation, 62.8 µs. |
-| 700 generated tokens after a 44-token prompt (across token 512 while decoding) | digest `<h60>…` | same digest | 1 allocation, 1 release |
+| Kestrel prompt, 244 tokens (inside chunk 0) | `7319-KESTREL, Paris`, digest `<h61>…` | same digest | 1 allocation (the runway) |
+| Kestrel prompt, 623 tokens (across token 512) | `7319-KESTREL, Paris`, digest `<h61>…` | same digest | The pages past the boundary came from the resident runway chunk. Then 1 runway allocation, 62.8 µs. |
+| 700 generated tokens after a 44-token prompt (across token 512 while decoding) | digest `<h62>…` | same digest | 1 allocation, 1 release |
 
 Verdict: `PASS [grow] 3 of 3 answers correct and equal to the dense child (digests)`.
 
@@ -187,7 +187,7 @@ The last row is above the dense pool's limit of 65,529 tokens. "After" is one sa
 
 - load, and selftest `0xe00002e2`
 - kernel: two `deny(1) iokit-open-user-client IOSurfaceRootUserClient` per child
-- chat: `pin=<h21> answer=Paris left=0`
+- chat: `pin=<h22> answer=Paris left=0`
 - reader-make: global and non-global make returned NULL in both phases
 - reader: `ARM sweep ids=1..4096 opened=0 with_canary=0` in both phases, `mtl4Queue=0 sharedEvent=0`
 - long-32k
@@ -243,42 +243,42 @@ Same prompts on both children (fixed nonces, no prefix hit), `MAX_CONTEXT` 65529
 - Verdict: no measurable change. The sign of the change is not stable across pairs, and the dense child alone ran between 24.1 and 48.8 tok/s in this session. The setup cannot resolve a difference smaller than about 15 %. Pair 3 is not a speed-up of the design: the code in the request path is the same as in pairs 1 and 2.
 - The decode rate fell from 48 to 25 tok/s during the session for both children. `~/Library/Logs/thermal-brake.log` shows thermal pressure "fair" from <time> to <time> local, which covers all A/B rounds. It shows "fair" again from <time> local. Another agent's `mlx-serve` used the GPU from about <time> to <time> local. The difference between the two children is smaller than the difference between two dense runs.
 - Outputs: each of the 7 prompts gave one answer digest on both children in all three rounds (21 results per child, `neg/CKV/run/bench-ab.txt`, `neg/CKV/run/bench-final.txt`).
-- Pairs 0 to 2 used the first chunked build (`<h61>…`). The final build (pair 3) differs only in the startup pool accounting (`adoptBackedExtents`), which no request step runs.
+- Pairs 0 to 2 used the first chunked build (`<h63>…`). The final build (pair 3) differs only in the startup pool accounting (`adoptBackedExtents`), which no request step runs.
 
 ## New child
 
 The staged form is `codesign -f -s - --options runtime -i sealed.splash`, the same as `stage-child.sh`. Two copies in `scratch/ckv-pin-a/` and `scratch/ckv-pin-b/` give:
 
 ```
-CDHash=<h21>   (adhoc,runtime, Identifier=sealed.splash)
+CDHash=<h22>   (adhoc,runtime, Identifier=sealed.splash)
 ```
 
-- `splash/build/splash`: SHA-256 `<h56>`. Linker ad-hoc CD hash `<h62>` (unsigned form, not the pin).
+- `splash/build/splash`: SHA-256 `<h58>`. Linker ad-hoc CD hash `<h64>` (unsigned form, not the pin).
 - The chat legs of `neg/run-dkv.sh` pinned the same value.
-- New model hash for consumers (`scripts/model-hash.py`, run from a copy, `scratch/ckv-model-hash.py`): `<h63>`. The same script gives `<h64>…3932` for the dense child, as in the dense report.
+- New model hash for consumers (`scripts/model-hash.py`, run from a copy, `scratch/ckv-model-hash.py`): `<h65>`. The same script gives `<h66>…3932` for the dense child, as in the dense report.
 
 ## Rebuild sequence (operator)
 
 CAUTION: The running `SealedEngineV2` and its child use `child/splash`. Stop the engine before you restage `child/`.
 
 1. Stop the engine: `pkill -f "SealedEngineV2.app/Contents/MacOS/SealedEngine"`.
-2. Stage the child: `cd ~/projects/sealed-backends-spike/sealed-m5 && ./stage-child.sh`. The output must be `pin=<h21>`.
+2. Stage the child: `cd ~/projects/sealed-backends-spike/sealed-m5 && ./stage-child.sh`. The output must be `pin=<h22>`.
 3. Run the launcher cases on the staged child: `neg/run-all.sh`. The result must be 95/95 PASS.
 4. Write the pin: `cd ~/projects/morpheus-pnode/sealed-engine-v2 && scripts/pin-child.sh ~/projects/sealed-backends-spike/sealed-m5/child/splash ~/projects/sealed-backends-spike/sealed-m5/tools/decoy ~/projects/sealed-backends-spike/sealed-m5/tools/reqgen`.
-5. Check the child build: `scripts/child-repro-check.sh ~/projects/sealed-backends-spike/sealed-m5/splash`. Both folders must give `<h21>…9287`.
+5. Check the child build: `scripts/child-repro-check.sh ~/projects/sealed-backends-spike/sealed-m5/splash`. Both folders must give `<h22>…9287`.
 6. Build the engine: `scripts/bundle.sh /tmp/sev2-profile/engine.provisionprofile`.
 7. Start the engine: `scripts/start-engine.sh`.
 8. Run the evidence suite: `scripts/evidence.sh /tmp/sev2-profile/engine.provisionprofile`. It includes the verified `sealed-chat` request ("Paris").
-9. Commit `ChildPin.swift` (precedent: `<h65> pin: child <h66>`). Publish the new engine CD hash and the model hash `<h63>…d210`.
+9. Commit `ChildPin.swift` (precedent: `<h67> pin: child <h68>`). Publish the new engine CD hash and the model hash `<h65>…d210`.
 10. Update `sealed-accept/matrix.json` (`child_cdhash`, `child_pin`, the engine CD hash). Raise `NEG_EXPECTED` in `sealed-accept/accept.sh` from 90 to 95 and bump `tool_version`, because the suite grew. Then run `sealed-accept/accept.sh`.
 
-> Superseded 2026-10-24: the engine sends config frame version 2 (commit `<h67>`). The paragraph below describes the state on 2026-10-23.
+> Superseded 2026-10-24: the engine sends config frame version 2 (commit `<h69>`). The paragraph below describes the state on 2026-10-23.
 
 Optional, for a budget other than 16 GiB: the engine sends config frame version 1. A different budget needs the engine to send version 2 (the format in `sealed_r2.h`). That is a change in `~/projects/morpheus-pnode` and was not made.
 
 ## Run history
 
-1. First full run (production SHA-256 `<h61>…3f28`, CD hash `<h68>…9984`): build-all rc=0, suite 95/95, `run-dkv.sh` 0 failed, `run-ckv.sh` 0 failed (`neg/final-2026-10-23-ckv-run1.txt`, `neg/dkv-2026-10-23-ckv-run1.txt`, `neg/ckv-2026-10-23-run1.txt`).
+1. First full run (production SHA-256 `<h63>…3f28`, CD hash `<h70>…9984`): build-all rc=0, suite 95/95, `run-dkv.sh` 0 failed, `run-ckv.sh` 0 failed (`neg/final-2026-10-23-ckv-run1.txt`, `neg/dkv-2026-10-23-ckv-run1.txt`, `neg/ckv-2026-10-23-run1.txt`).
 2. In that run the grow leg showed no allocation note for chunks that the pool allocated. The cause: warmup backed chunks 1 to 3 through the storage, outside the pool. Fix: `adoptBackedExtents`. After the fix, startup releases chunks 0 to 2 and keeps chunk 3 as the runway (notes: `ckv release chunk=2`, `1`, `0`).
 3. Final run on the fixed build: the numbers in this report.
 

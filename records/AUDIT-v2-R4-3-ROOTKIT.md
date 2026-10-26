@@ -11,7 +11,7 @@ The work was read-only. I did not use sudo. I did not start or stop the engine o
 - One `ps -o lstart= -p 99999` call (a pid that does not exist). It printed nothing, `rc=1`.
 - One temporary list `/tmp/r4a3-inst.txt` (file names of the installed kit) for a `diff`. I deleted it at once.
 
-Line numbers below refer to the current `tools/tee-rootpass.sh` (sha256 `<h89>…5069078`). The installed copy and the copy that made the run are the same file (section 5).
+Line numbers below refer to the current `tools/tee-rootpass.sh` (sha256 `<h91>…5069078`). The installed copy and the copy that made the run are the same file (section 5).
 
 ## Pre-registered falsifiers
 
@@ -19,15 +19,15 @@ Line numbers below refer to the current `tools/tee-rootpass.sh` (sha256 `<h89>�
 2. `stop_server` fails if it can leave a kit server alive, kill a process that is not the kit's, or wait without a bound. It also fails if a server that does not stop can go unnoticed.
 3. A `P6-gcore` PASS is vacuous if a decoy failure (no pid, dead pid, no core, empty file) can still give PASS.
 4. A root PASS is vacuous if the bad input did not reach the check, the control did not fire, or the evidence file is empty.
-5. The installed kit fails identity if any file hash differs from the source, or if `engine-cdhash` is not `<h19>…`.
+5. The installed kit fails identity if any file hash differs from the source, or if `engine-cdhash` is not `<h20>…`.
 
 ## 1. Round-3 findings: status
 
 | Round-3 ID | Status | Basis |
 |---|---|---|
-| R3-01 decoy control evidence | FIXED | `tee-rootpass.sh:374-381` writes the decoy pid, user, flags, `rc`, core size and core sha256 into `gcore-ctl.txt`. PASS needs the line `^# decoy pid=[0-9]` (`:392`). This run: `gcore-ctl.txt` 149 B: "# decoy pid=93884 user=<developer> flags=0x2", "# gcore rc=0", "# core bytes=81920 sha256=<h90>…3532". Residual: see R4-3-07. |
+| R3-01 decoy control evidence | FIXED | `tee-rootpass.sh:374-381` writes the decoy pid, user, flags, `rc`, core size and core sha256 into `gcore-ctl.txt`. PASS needs the line `^# decoy pid=[0-9]` (`:392`). This run: `gcore-ctl.txt` 149 B: "# decoy pid=93884 user=<developer> flags=0x2", "# gcore rc=0", "# core bytes=81920 sha256=<h92>…3532". Residual: see R4-3-07. |
 | R3-02 decoy leak | PARTLY FIXED | `:383` stops the `sudo` child of the job (`pkill -P "$GCTL"`), the decoy and the job. This run: no "still alive" line in `gcore-ctl.txt`. The cleanup line says "0 control pids" (`root-pass.txt:80`). `pgrep -fl 'tee-rootkit\|ctlproc'` today prints nothing. Open part: the `kill -0` check at `:385` writes a log line only. `cleanup` (`:96-111`) does not kill a decoy that survived. No step grades `leftover > 0` (R4-3-03). |
-| R3-03 engine pid binding (F-12) | OPEN in code, holds for this run | `:302` still takes `EPID` from `pgrep -f … \| head -1`. The run records no lstart and no CD hash for `EPID`. I checked it live: pid 87624 is the :29452 listener (`lsof`), started "<date> <time> 2026" (before the run at <time>), CD hash `<h19>…<h91>`, `flags=0x10000(runtime)`. Child 87817 has ppid 87624, lstart <time> (equal to `engine-child.txt`), CD hash `<h23>…ea6`. Only one process matches the `pgrep` pattern. |
+| R3-03 engine pid binding (F-12) | OPEN in code, holds for this run | `:302` still takes `EPID` from `pgrep -f … \| head -1`. The run records no lstart and no CD hash for `EPID`. I checked it live: pid 87624 is the :29452 listener (`lsof`), started "<date> <time> 2026" (before the run at <time>), CD hash `<h20>…<h93>`, `flags=0x10000(runtime)`. Child 87817 has ppid 87624, lstart <time> (equal to `engine-child.txt`), CD hash `<h24>…ea6`. Only one process matches the `pgrep` pattern. |
 | R3-04 hardened decoy (R2-09) | OPEN | The decoy is still ad-hoc: `gcore-ctl.txt` "flags=0x2". No hardened decoy runs in the arm. `OPEN-ITEMS-CLOSURE-2026-10-24.md:28` still says "R2-09 … fixed". `neg/P6/p6-gcore-retry.sh:6-7` still says the cores go to `/cores` (mtime <date> <time>, not changed). |
 | R3-05 A-4 cause | PARTLY FIXED | The EXEMPT text is now correct about the binary: `accept.sh:433` "AMFI kills the kit client at launch (exit 137) … Not measured: … /usr/bin/eslogger". `matrix.py:47-49` matches the whole kit line. Open: no log excerpt shows that AMFI is the killer (`es.txt` 0 B, `root-pass.txt:47` "Killed: 9"). No `eslogger` arm exists. `accept.sh:429` still says "cannot PASS on any Mac of this fleet". |
 | R3-06 A-2 pattern and FAIL-first | FIXED | `:179-184`: a child copy gives FAIL before any control branch. `matrix.py:56-58` needs "child=0; " and "probe description syscall::read:entry does not match any probes\.", as a full-line match (`matrix.py:240`). This run: `root-pass.txt:43` holds both. The INFO label (not INCONCLUSIVE) stays, which is cosmetic, because the gate maps INFO to EXEMPT or INCONCLUSIVE. |
@@ -79,7 +79,7 @@ A phantom entry (R4-3-05) makes the 90 s loop run in full. It is still bounded.
 
 ### 3.1 This run
 
-- `gcore-ctl.txt`: "# decoy pid=93884 user=<developer> flags=0x2", "# gcore rc=0", "# core bytes=81920 sha256=<h90>". No "still alive" line.
+- `gcore-ctl.txt`: "# decoy pid=93884 user=<developer> flags=0x2", "# gcore rc=0", "# core bytes=81920 sha256=<h92>". No "still alive" line.
 - The decoy is not the A-1 control. The A-1 control is pid 89998 (`lsmp-ctl.txt:1` "Process (89998) : ctlproc"). The job subshell was 93880 (`root-pass.txt:71` "93880 Terminated: 15"). `pgrep -n -u "$U" -x ctlproc` (`:374`) excludes the root `sudo` wrapper.
 - Targets: `gcore-engine.txt` and `gcore-engine-child.txt` are 55 B each: "gcore: insufficient privilege: Operation not permitted". Both lines say `rc=77`. Both pids were live and bound to the accepted build (section 1, R3-03).
 
@@ -112,7 +112,7 @@ The `kill -0` check is a hygiene log only. A surviving decoy does not change the
 | P10-engine-dtrace-attach (`:66`) | "failed to grab pid 87624". | Not in the rule (`:309`). The shared control fired (`dt-attach-ctl.txt`). | 120 B. | Passes in this run. Rule gap F-11. |
 | P10-engine-child-task-ports (`:68`) | 87817, ppid 87624. | `k_for=kr=0`, reads ≥ 1 (`:340`). | 92 B. | Passes. |
 | P10-engine-child-dtrace-attach (`:69`) | "failed to grab pid 87817" (by the line). | `a_ctl ≥ 1` (`:351`). | 120 B. | Passes. |
-| P10-lo0-ciphertext-only (`:70`) | `p10-chat.txt`: the attested CD hash `<h19>…` "matches the pinned hash", and "REPLY … P10ROOTCANARY17928990773571". | Not in the rule (F-10). In the same run, `strings lo0.pcap` finds the :8199 canary 2 times. | `lo0-engine.pcap` 14,393 B, 40 packets on 3 connections to :29452, 0 canary hits (my recount). | Passes in this run. Rule gap F-10. |
+| P10-lo0-ciphertext-only (`:70`) | `p10-chat.txt`: the attested CD hash `<h20>…` "matches the pinned hash", and "REPLY … P10ROOTCANARY17928990773571". | Not in the rule (F-10). In the same run, `strings lo0.pcap` finds the :8199 canary 2 times. | `lo0-engine.pcap` 14,393 B, 40 packets on 3 connections to :29452, 0 canary hits (my recount). | Passes in this run. Rule gap F-10. |
 | P6-gcore-engine (`:72`) | `rc=77` "insufficient privilege" on live 87624. | The decoy dumped 81,920 B (section 3). | 55 B, and `gcore-ctl.txt` 149 B. | Passes. |
 | P6-gcore-engine-child (`:73`) | `rc=77` on live 87817. | Same decoy. | 55 B. | Passes. |
 | root/suite (report) | exit 0, end line "11 PASS, 0 FAIL, 3 INCONCLUSIVE, 8 INFO". | n/a | `root-pass.txt` 6,887 B. | Passes. |
@@ -121,11 +121,11 @@ The four EXEMPT rows (A-2-dtrace-read, A-4, R4-T5 ×2) are not PASS rows. Their 
 
 ## 5. Installed kit identity
 
-- `shasum -a 256` gives `<h89>` for `tools/tee-rootpass.sh`, `tools/tee-rootkit/tee-rootpass.sh` and `/usr/local/libexec/tee-rootkit/tee-rootpass.sh`. `SHA256SUMS` lists the same hash.
+- `shasum -a 256` gives `<h91>` for `tools/tee-rootpass.sh`, `tools/tee-rootkit/tee-rootpass.sh` and `/usr/local/libexec/tee-rootkit/tee-rootpass.sh`. `SHA256SUMS` lists the same hash.
 - `diff tools/tee-rootkit/SHA256SUMS /usr/local/libexec/tee-rootkit/SHA256SUMS` is empty.
 - All 16 entries print OK in both folders. I compared each installed file with its source file by hash, and no file differs.
 - The installed folder holds 17 files: the 16 listed files and `SHA256SUMS`. No unlisted file exists.
-- `engine-cdhash` = `<h19>`. `engine-modelhash` = `<h83>`. `engine-appid` = `<TEAM>.<bundle-id>`. These equal the round-4 pins.
+- `engine-cdhash` = `<h20>`. `engine-modelhash` = `<h85>`. `engine-appid` = `<TEAM>.<bundle-id>`. These equal the round-4 pins.
 - The installed files have mtime <time>. The run started at <time>. The stderr line numbers in `root-pass.txt` (`line 196` esclient, `line 85` the stop loop, `line 398` the end of the P10 block) match the current source.
 - The report rows `kit/installed-hashes`, `kit/installed-equals-source` and `kit/engine-identity` are PASS, and they agree with my check.
 
@@ -140,13 +140,13 @@ The four EXEMPT rows (A-2-dtrace-read, A-4, R4-T5 ×2) are not PASS rows. Their 
 | R4-3-05 | LOW | Pid records | `record_tree` writes an empty lstart if the pid exits between `pgrep` and `ps`. `alive_recorded` then reports that dead pid as alive, because the empty `ps` output equals the empty field. The effect is fail-noisy: the 90 s wait runs in full, and the cleanup count is falsely above 0. It is not fail-open. All 18 lines in this run have an lstart. | `tee-rootpass.sh:60-61`. Measured: `ps -o lstart= -p 99999` prints nothing (`rc=1`). `kit-pids.txt`. | Skip a pid with an empty lstart in `record_tree`, or require a non-empty field in `alive_recorded`. |
 | R4-3-06 | LOW | A-1 control pid | The A-1 control pid still comes from `pgrep -n -f "tee-rootkit/ctlproc"`, which also matches the root `sudo` wrapper. In this run it chose the user's `ctlproc` 89998, and the control read memory, so the result holds. The `gcore` decoy got the `-u -x` fix, but A-1 did not. | `tee-rootpass.sh:156`. `lsmp-ctl.txt:1` "Process (89998) : ctlproc". `tp-ctl.txt`. | Use `pgrep -n -u "$U" -x ctlproc`, and write the pid into `tp-ctl.txt`. |
 | R4-3-07 | LOW | Decoy record | `flags=` comes from `codesign -dv "$K/ctlproc"`, which is the file, not the running decoy. If the new decoy does not start, `pgrep -n -u "$U" -x ctlproc` picks the A-1 control. That is still a valid control of the same kind, but the record names it the decoy. In this run 93884 is the new decoy. | `tee-rootpass.sh:374-376`. `gcore-ctl.txt:1`. | Take the decoy pid from `pgrep -P` of the job's `sudo` child. Record `codesign -dv <pid>` and the lstart. Refuse a decoy pid that equals `CTLPID`. |
-| R4-3-08 | LOW | Closure record | The closure row for R3-01 and R3-02 cites the root pass `<time>`. That run belongs to the revoked report `…20261025ThhmmssZ` (engine `<h20>`). The accepted run `<time>` shows the same facts. | `OPEN-ITEMS-CLOSURE-2026-10-24.md:91`. `logs/tee-rootpass-<date>-<time>/p10-chat.txt` "CD hash <h20>…". `…20261025ThhmmssZ/root-pass.txt:1`. | Cite `logs/tee-rootpass-<date>-<time>/gcore-ctl.txt` (decoy pid 93884, rc 0, 81,920 B, sha256 `<h90>…`). |
+| R4-3-08 | LOW | Closure record | The closure row for R3-01 and R3-02 cites the root pass `<time>`. That run belongs to the revoked report `…20261025ThhmmssZ` (engine `<h21>`). The accepted run `<time>` shows the same facts. | `OPEN-ITEMS-CLOSURE-2026-10-24.md:91`. `logs/tee-rootpass-<date>-<time>/p10-chat.txt` "CD hash <h21>…". `…20261025ThhmmssZ/root-pass.txt:1`. | Cite `logs/tee-rootpass-<date>-<time>/gcore-ctl.txt` (decoy pid 93884, rc 0, 81,920 B, sha256 `<h92>…`). |
 | R4-3-09 | LOW | Round-3 items still open | R3-03 (no lstart or CD hash for `EPID`), R3-04 (no hardened decoy, closure `:28` says fixed, stale `/cores` comment), R3-05 rest (no AMFI evidence, no `eslogger` arm, `accept.sh:429`), R3-07 (generic `rc=5` text, C1-C6 control not run), R3-08 (F-8 to F-13, F-15, F-17), R3-09, R3-10. | Section 1. | Do the round-3 actions. Priority: R4-3-01 and R4-3-02, then R3-04 and the closure text. |
 
 No CRITICAL or HIGH finding.
 
 ## Verdict for this area
 
-The root kit that made report `…20261025ThhmmssZ` is the kit in the source tree, byte for byte, and it pins engine `<h19>…` and model `<h83>…` (go-upstream-to-the-source). The new `stop_server` fixed the isolation failure of report `…20261025ThhmmssZ` in this run: both stops took about 2 s, the cleanup line says 0 leftovers, and the harness saw no foreign process. Its loops are bounded at about 400 s for each call, so it cannot hang without a bound. It can, in narrow cases, leave a recorded process alive or signal a foreign :8199 listener. A server that does not stop at cleanup is not reported in the report, only by the next run, which fails closed (R4-3-03, R4-3-04) (fail-loudly-not-silently).
+The root kit that made report `…20261025ThhmmssZ` is the kit in the source tree, byte for byte, and it pins engine `<h20>…` and model `<h85>…` (go-upstream-to-the-source). The new `stop_server` fixed the isolation failure of report `…20261025ThhmmssZ` in this run: both stops took about 2 s, the cleanup line says 0 leftovers, and the harness saw no foreign process. Its loops are bounded at about 400 s for each call, so it cannot hang without a bound. It can, in narrow cases, leave a recorded process alive or signal a foreign :8199 listener. A server that does not stop at cleanup is not reported in the report, only by the next run, which fails closed (R4-3-03, R4-3-04) (fail-loudly-not-silently).
 
 The `gcore` decoy fix is real. `gcore-ctl.txt` now records the pid, `rc`, size and hash, and every decoy failure grades INCONCLUSIVE, so a decoy failure cannot give PASS (falsification-beats-confirmation). I confirmed live that the `gcore` and P10 targets were the accepted engine and child. Of the eleven root PASS lines, two still fail the vacuous-pass rule: A-21 (empty control file) and R4-T4 (no control). Three P10 arms pass in this run only because a shared control fired that their own rule does not require (judge-the-method-not-the-claim). These are open round-1 items, and they do not make any PASS false in this run. The closure file cites a root pass of a revoked build for the decoy fix and still calls R2-09 fixed (R4-3-08, R3-04).

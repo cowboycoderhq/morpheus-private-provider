@@ -74,7 +74,7 @@ user account of the project got these values
 shasum -a 256 engine/build/SealedEngine.verify
 ```
 
-Expected: `5b3c9d1ff38f9bbb4e13f3a8e706fbad2b3faa25e5ab17599066b90ebbb1a3e7`. The script uses SwiftPM, which fetches the
+Expected: `e7227eb663506ea89015b5ae4e6dc3af3066f3f15bc7d3227f0022ddeb59702d`. The script uses SwiftPM, which fetches the
 dependencies that `engine/Package.resolved` pins.
 
 CAUTION: `build-reproducible.sh` deletes and reuses the folder

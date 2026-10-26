@@ -1,7 +1,7 @@
 # second Mac Mac17,7 macOS 27.0.1 uid=501 2026-10-25 <time>Z
 # toolchain Xcode 27.1 Build version 27A9275  metal=Apple metal version 32023.921 (metalfe-32023.921.6)
-# splash commit aa32be84de6d018060af81a49eccdb48faf0bf8a engine commit beba4427ca3c9937111f064996b46168e19e744b
-# expect child pin 8083a3388742668a68027de726b2a5eaef049ac6 engine <engine CD hash withheld>
+# splash commit aa32be84de6d018060af81a49eccdb48faf0bf8a engine commit <h109>
+# expect child pin 8083a3388742668a68027de726b2a5eaef049ac6 engine <h17>
 PASS [manifest] all copied files match MANIFEST.sha256
 child unsigned_sha256=51499416ad246a5970a77e44af26f8ac78b43bbd7314c37d7fe0100a629180fa build_id=src-997348af029254a3c4c679c14adb7bae8c9eea8982aef57fde422ff4ea88231b
 PASS [child-bytes] unsigned child equals the M5 build (51499416ad246a5970a77e44af26f8ac78b43bbd7314c37d7fe0100a629180fa)
@@ -10,7 +10,7 @@ Rebuild comparison: ~/sealed-rebuild-r5/ref/SealedEngineV2.app vs ~/sealed-rebui
 
   [PASS] bundle layout        3 files; the same set in both apart from the signature and the provisioning profile
   [PASS] signature            one SHA-256 CodeDirectory, CMS signature present
-  [PASS] published CD hash    <engine CD hash withheld>
+  [PASS] published CD hash    <h17>
   [PASS] identity             <TEAM>.<bundle-id>
   [PASS] code flags           flags 0x10000 (hardened runtime), exec-segment flags 0x1
   [PASS] executable           all 410 code pages match the rebuild; page 0 differs only in the signature's header fields
@@ -21,7 +21,7 @@ Rebuild comparison: ~/sealed-rebuild-r5/ref/SealedEngineV2.app vs ~/sealed-rebui
   [PASS] unused slots         special slots -4 and -6 are empty
   [PASS] provisioning profile names <TEAM>.<bundle-id>, grants App Attest opt-in, no get-task-allow
 
-MATCH: the published app is this source's build. App Attest will report CD hash <engine CD hash withheld>
+MATCH: the published app is this source's build. App Attest will report CD hash <h17>
 At runtime the kernel enforces the executable's pages only; the other bundle files are proven for this copy, not for whatever a provider's disk holds later.
 PASS [engine-rebuild] the published app is this source's build on a second Mac, as a second user
 # result: 0 failed

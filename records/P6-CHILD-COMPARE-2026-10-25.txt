@@ -1,17 +1,17 @@
 # P6 child compare (2026-10-25): child used by P6 vs the accepted child
-a scratch/ckv-pin-a/splash cdhash <h21> size 3307072 signature_offset 3300368 uuid BD9103B8-E0DB-3208-AB4C-389E60C6B8AF
-b child/splash cdhash <h23> size 3307072 signature_offset 3300368 uuid 82DB6112-3D18-36B7-96E8-70522B3C05A7
+a scratch/ckv-pin-a/splash cdhash <h22> size 3307072 signature_offset 3300368 uuid BD9103B8-E0DB-3208-AB4C-389E60C6B8AF
+b child/splash cdhash <h24> size 3307072 signature_offset 3300368 uuid 82DB6112-3D18-36B7-96E8-70522B3C05A7
 same size before signature: True
 differing bytes before the signature: 78 in 4 runs
-  0x788-0x797 (16 bytes) a=<h35> b=<h36>
+  0x788-0x797 (16 bytes) a=<h37> b=<h38>
      text a: b'/dyld\x00\x00\x00\x00\x00\x00\x00\x1b\x00\x00\x00\x18\x00\x00\x00\xbd\x91\x03\xb8\xe0\xdb2\x08\xabL8\x9e`\xc6\xb8\xaf2\x00\x00\x00 \x00\x00\x00\x01\x00\x00\x00\x00\x04\x1a\x00\x00\x00\x
      text b: b'/dyld\x00\x00\x00\x00\x00\x00\x00\x1b\x00\x00\x00\x18\x00\x00\x00\x82\xdba\x12=\x186\xb7\x96\xe8pR+<\x05\xa72\x00\x00\x00 \x00\x00\x00\x01\x00\x00\x00\x00\x04\x1a\x00\x00\x00\x1b\x00'
   0xcebfd-0xcec04 (8 bytes) a=3934643464626266 b=3463363137393337
-     text a: b',__splash_metal\x00src-<h37>'
-     text b: b',__splash_metal\x00src-<h29>'
+     text a: b',__splash_metal\x00src-<h39>'
+     text b: b',__splash_metal\x00src-<h31>'
   0xcec06-0xcec1b (22 bytes) a=64303431666161333565373238323534623130323365 b=36363737323663346333633165373032376535666437
-     text a: b'_metal\x00src-<h37>'
-     text b: b'_metal\x00src-<h29>'
+     text a: b'_metal\x00src-<h39>'
+     text b: b'_metal\x00src-<h31>'
   0xcec1d-0xcec3c (32 bytes) a=3333343863663563313732353562316564316365393032653164643131396232 b=3639336132386638343933366237663965373830373562316132366264336633
-     text a: b'<h38>\x00vector\x00bootstrap er'
-     text b: b'<h39>\x00vector\x00bootstrap er'
+     text a: b'<h40>\x00vector\x00bootstrap er'
+     text b: b'<h41>\x00vector\x00bootstrap er'

@@ -32,7 +32,7 @@ let package = Package(
         .product(name: "Hub", package: "swift-transformers"),
       ],
       path: "Sources/SealedEngineV2",
-      linkerSettings: [.linkedFramework("DeviceCheck"), .linkedFramework("CoreServices")]
+      linkerSettings: [.linkedFramework("DeviceCheck"), .linkedFramework("CoreServices"), .linkedFramework("IOKit")]
     ),
   ]
 )

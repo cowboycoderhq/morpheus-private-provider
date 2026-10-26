@@ -81,8 +81,8 @@ Consumer: `proxy-router/cmd/sealed-chat` (verifies like a consumer node, sends o
 | Engine App Attest CD hash | `<engine CD hash withheld>` |
 | Child pin | `8083a3388742668a68027de726b2a5eaef049ac6` |
 | Model hash | `57b2151c5135eb2d7376beab591ad221f6345c8654d8e4220a386747d0bd1477` |
-| Source | engine commit `beba4427` (local branch, not on the hub); child source `sealed-m5/splash` commit `aa32be84` on top of incoai/splash 1.0.2 (local repo); harness commit `a7f245d0` |
-| Accept | `sealed-m5/sealed-accept/reports/Mac17,7-27.2-beta-20261025ThhmmssZ.json` (engine commit `beba4427`): level A 138/138, level B 155 PASS + 4 EXEMPT of 159. Second-Mac build: `sealed-m5/review/SECOND-MAC-REBUILD-2026-10-25-r5.txt` (0 failed). Earlier reports (`…20261025ThhmmssZ` and older) are revoked by the current gates |
+| Source | engine commit `7a83aa51` (local branch, not on the hub); child source `sealed-m5/splash` commit `aa32be84` on top of incoai/splash 1.0.2 (local repo); harness commit `22bcc434` |
+| Accept | `sealed-m5/sealed-accept/reports/Mac17,7-27.2-beta-20261026ThhmmssZ.json` (engine commit `7a83aa51`): level A 141/141, level B 158 PASS + 4 EXEMPT of 162. Second-Mac build: `sealed-m5/review/SECOND-MAC-REBUILD-2026-10-26-r6.txt` (0 failed). Earlier reports (`…20261025ThhmmssZ` and older) are revoked by the current gates |
 | Claim | `sealed-m5/review/CLAIM-v2-2026-10-24.md` |
 | Open items | `sealed-m5/review/OPEN-ITEMS-CLOSURE-2026-10-24.md` |
 

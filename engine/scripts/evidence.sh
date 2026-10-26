@@ -52,6 +52,21 @@ W=$(python3 scripts/model-hash.py "$M/pkg/qwen38-27b" "$pin" | awk '/^model/{pri
 scripts/start-engine.sh > /dev/null || { v FAIL engine-start "$(tail -3 build/engine.log build/engine.err | tr '\n' ' ')"; }
 grep -q "model=$W" build/engine.log && v PASS model-hash "engine reports model hash $W, equal to the hash computed from the package files and the pin by scripts/model-hash.py" \
   || v FAIL model-hash "engine: $(grep -o 'model=[0-9a-f]*' build/engine.log); computed $W"
+if grep -q "boot posture: sip=0x0 bootargs=empty swap=encrypted hibernate=[03] kexts=apple-only ap=1 cert=1 sep=1" build/engine.log && grep -q "selftest posture-runtime rc=0 allowed" build/engine.log; then
+  v PASS boot-posture "$(grep -m1 '^boot posture:' build/engine.log)"
+else
+  v FAIL boot-posture "missing boot posture or sandbox posture-runtime line in build/engine.log"
+fi
+PC=/tmp/sev2-posture-check
+if clang -std=c17 -Wall -Wextra -I Sources/SealedSpawnC/include -framework CoreFoundation -framework IOKit \
+     Sources/SealedSpawnC/sealed_posture.c scripts/posture-check.c -o "$PC" 2>&1 \
+   && PO=$("$PC" 2>&1) && echo "$PO" | grep -q "^# posture-check: 0 failed$"; then
+  echo "$PO" | sed 's/^/    /' >> "$O"
+  v PASS boot-posture-unit "13 posture arms (live host + 12 refusal/allow mutations), 0 failed"
+else
+  v FAIL boot-posture-unit "${PO:-compile failed}"
+fi
+rm -f "$PC"
 OUT=$(/tmp/sealed-chat --engine http://127.0.0.1:29452 --app-id $APPID --cdhash "$E" --weights "$W" 2>&1); echo "$OUT" >> "$O"
 echo "$OUT" | grep -q '^REPLY.*"Paris"' && echo "$OUT" | grep -q "matches the pinned hash" && v PASS verified-chat "$(echo "$OUT" | grep ^REPLY)" || v FAIL verified-chat "$(echo "$OUT" | tail -1)"
 
@@ -62,6 +77,8 @@ x=$(/tmp/sealed-chat --engine http://127.0.0.1:29452 --app-id $APPID --cdhash "$
 echo "$x" | grep -q "session binding" && v PASS refuse-wrong-model "$x" || v FAIL refuse-wrong-model "${x:-no refusal}"
 x=$(/tmp/sealed-chat --engine http://127.0.0.1:29452 --app-id "${APPID%.*}.other" --cdhash "$E" --weights "$W" 2>&1 | grep ^FAIL)
 echo "$x" | grep -q "app id" && v PASS refuse-wrong-appid "$x" || v FAIL refuse-wrong-appid "${x:-no refusal}"
+x=$(/tmp/sealed-chat --engine http://127.0.0.1:29452 --app-id $APPID --cdhash "$E" --weights "$W" --min-os 99.0 2>&1 | grep ^FAIL)
+echo "$x" | grep -q "older than the required minimum" && v PASS refuse-old-macos "$x" || v FAIL refuse-old-macos "${x:-no refusal}"
 
 # 5. P10 canary (non-root part)
 CAN="P10CANARY$(date +%s)$RANDOM"; START=$(date '+%Y-%m-%d %H:%M:%S')

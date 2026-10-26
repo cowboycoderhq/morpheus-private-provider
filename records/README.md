@@ -13,7 +13,7 @@ run output (logs, traces, the raw accept-report folder).
   (`SPEC-TEMP-2026-10-25.md`, `PREFIX-CACHE-GAP-2026-10-25.md`) and older
   records that later ones supersede (`CLAIM-v2-2026-10-23.md`,
   `OPEN-ITEMS-CLOSURE-2026-10-22.md`).
-- `accept-results-Mac17,7-27.2-beta-20261025ThhmmssZ.md`: each check of the accept run with its
+- `accept-results-Mac17,7-27.2-beta-20261026ThhmmssZ.md`: each check of the accept run with its
   result. The raw run files are not published, because they hold host data.
 - The second-Mac rebuilds: `SECOND-MAC-REBUILD-2026-10-25-r5.txt` (these
   pins) and `SECOND-MAC-REBUILD-r4-2026-10-25.txt` (the previous pins).

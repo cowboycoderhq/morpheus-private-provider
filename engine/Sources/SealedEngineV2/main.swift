@@ -35,6 +35,27 @@ do {
 EnvGuard.enforce()
 let env = ProcessInfo.processInfo.environment
 
+// 2b. Boot posture and host settings (A-11, P5a, P5d): SIP active config is 0,
+//     bootargs empty, swap encrypted, hibernatemode 0 or 3, no non-Apple kext,
+//     and IODeviceTree:/chosen security mode 1,1,1. Checked before the package
+//     or the child is touched; also writes the refused line to SEALED_ENGINE_LOG
+//     when set so start-engine.sh sees it.
+let postureLine: String = {
+    var msg = [CChar](repeating: 0, count: 256)
+    let rc = sealed_posture_check(&msg, msg.count)
+    let text = String(cString: msg)
+    guard rc == 0 else {
+        let err = "refusing to start: boot posture refused: \(text)\n"
+        FileHandle.standardError.write(Data(err.utf8))
+        if let p = env["SEALED_ENGINE_LOG"], !p.isEmpty {
+            let fd = open(p, O_WRONLY | O_CREAT | O_APPEND | O_NOFOLLOW | O_CLOEXEC, 0o600)
+            if fd >= 0 { _ = err.withCString { write(fd, $0, strlen($0)) }; close(fd) }
+        }
+        exit(8)
+    }
+    return text
+}()
+
 // 3. App Attest refuses bundles LaunchServices does not know about.
 LSRegisterURL(Bundle.main.bundleURL as CFURL, true)
 
@@ -47,6 +68,7 @@ func log(_ s: String) {
     print(s)
     if logFD >= 0 { _ = (s + "\n").withCString { write(logFD, $0, strlen($0)) } }
 }
+log("boot posture: \(postureLine)")
 
 /// SEALED_KV_BUDGET_BYTES: decimal bytes for the child's chunked-KV budget.
 /// Unset = 0 = frame v1 and the child's 16 GiB default. A value outside the
@@ -260,7 +282,12 @@ final class Engine {
         var why = "engine stopped on a backend fault"
         if !wasFaulted {
             guard let be else { respond(503, ["error": "not ready"]); return false }
-            do { try be.checkAlive(); return true } catch BackendError.dead(let w) { why = w } catch { why = "\(error)" }
+            var pwhy = [CChar](repeating: 0, count: 160)
+            if sealed_posture_runtime_check(&pwhy, pwhy.count) != 0 {
+                why = "boot posture changed: \(String(cString: pwhy))"
+            } else {
+                do { try be.checkAlive(); return true } catch BackendError.dead(let w) { why = w } catch { why = "\(error)" }
+            }
         }
         let first = queue.sync { () -> Bool in
             defer { faulted = true }

@@ -495,7 +495,8 @@ EXEMPT = {
     "root/A-2-dtrace-read": "SIP blocks the syscall provider; the control fails the same way",
 }
 ENGINE_EXPECTED = ["child-reproducible", "child-pin-in-engine", "engine-reproducible", "model-hash",
-                   "verified-chat", "refuse-wrong-cdhash", "refuse-wrong-model", "refuse-wrong-appid",
+                   "boot-posture", "boot-posture-unit",
+                   "verified-chat", "refuse-wrong-cdhash", "refuse-wrong-model", "refuse-wrong-appid", "refuse-old-macos",
                    "p10-canary-served", "p10-no-file-copy", "p10-no-log-copy", "p10-no-python-hop",
                    # Section 6 of evidence.sh (audit R4-E-01): a missing arm stops acceptance.
                    "padded-reply-1", "padded-reply-2", "padded-reply-4", "big-grapheme",
@@ -594,7 +595,8 @@ if not s or s["state"] != "RAN":
 else:
     lines = [x for x in parse(s["file"]) if x[0] in ("PASS", "FAIL")]
     st = {t: v for v, t, _, _ in lines}
-    ctl = {"verified-chat": ["refuse-wrong-cdhash", "refuse-wrong-model", "refuse-wrong-appid"],
+    ctl = {"verified-chat": ["refuse-wrong-cdhash", "refuse-wrong-model", "refuse-wrong-appid", "refuse-old-macos"],
+           "boot-posture": ["boot-posture-unit"],
            "p10-no-file-copy": ["p10-canary-served"], "p10-no-log-copy": ["p10-canary-served"],
            "refusal-503-body": ["refusal-503-control"]}
     seen = set()

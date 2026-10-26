@@ -3,7 +3,7 @@
 Host: M5, Mac17,7, macOS 27.2 beta (27.2-beta), 128 GiB.
 Model: audreyt/Qwen3.8-27B-Splash-abliterated, served from `pkg/qwen38-27b/`
 (hard links to the Hugging Face cache files; no symlinks).
-Last update: 2026-10-25 (accepted build: child pin `8083a3388742668a68027de726b2a5eaef049ac6`, staged in `child/`; engine `<engine CD hash withheld>…`; 95-case suite; accept report `…20261025ThhmmssZ`; second-Mac build `review/SECOND-MAC-REBUILD-2026-10-25-r5.txt`).
+Last update: 2026-10-26 (accepted build: child pin `8083a3388742668a68027de726b2a5eaef049ac6`, staged in `child/`; engine `<engine CD hash withheld>…`; 95-case suite; accept report `…20261026ThhmmssZ`; second-Mac build `review/SECOND-MAC-REBUILD-2026-10-26-r6.txt`).
 
 ## What runs
 

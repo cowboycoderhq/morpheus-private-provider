@@ -3,7 +3,7 @@
 **Verdict: CONFIRMED.** Root on the provider's Mac can read the exact prompt token count and the reply token count (including the end token) while a sealed chat runs. This confirms the length limit stated in `review/CLAIM-v2-2026-10-24.md`. `fs_usage` shows byte counts and times, not payloads, so this test can not show content either way.
 
 Run: `neg/LEN/len-20261024-<time>/` (`report.txt`, `fsusage.txt`). Grader: `neg/LEN/len-grade.py`. Script: `neg/LEN/len-root.sh` (criteria written in the script before the run).
-Build: engine `<h20>…` (pid 33725), child `<h22>…` (pid 33839). Mac17,7, macOS 27.2-beta, SIP on.
+Build: engine `<h21>…` (pid 33725), child `<h23>…` (pid 33839). Mac17,7, macOS 27.2-beta, SIP on.
 
 ## Method
 
