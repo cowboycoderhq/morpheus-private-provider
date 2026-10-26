@@ -1,0 +1,39 @@
+# host <host-b> Mac17,7 27.0-build user=<second-user> uid=501 HOME=~ <date> <time>
+# toolchain Xcode 27.1 Build version 27A9275  metal=Apple metal version 32023.921 (metalfe-32023.921.6)
+# splash commit <h31> engine commit <h32>
+# expect child pin <h17> engine <h18>
+PASS [manifest] all copied files match MANIFEST.sha256
+child unsigned_sha256=<h33> build_id=src-<h40>
+PASS [child-bytes] unsigned child equals the M5 build (<h33>)
+PASS [child-cdhash] CD hash <h17> = the pin in the engine
+Rebuild comparison: ~/sealed-rebuild-r4/ref/SealedEngineV2.app vs ~/sealed-rebuild-r4/engine-build/build/verify/SealedEngineV2.app
+
+  [PASS] bundle layout        3 files; the same set in both apart from the signature and the provisioning profile
+  [PASS] signature            one SHA-256 CodeDirectory, CMS signature present
+  [PASS] published CD hash    <h18>
+  [PASS] identity             <TEAM>.<bundle-id>
+  [PASS] code flags           flags 0x10000 (hardened runtime), exec-segment flags 0x1
+  [PASS] executable           all 410 code pages match the rebuild; page 0 differs only in the signature's header fields
+  [PASS] Info.plist           special slot -1 equals the rebuild's Info.plist
+  [PASS] resources            CodeResources seals every bundle file except PkgInfo (omitted by Apple's default rule, compared directly), each equal to the rebuild's
+  [PASS] entitlements         XML and DER entitlements are exactly: application identifier, team identifier, App Attest CD-hash opt-in
+  [PASS] requirements         designated requirement names the bundle ID (the certificate it names is signer-only)
+  [PASS] unused slots         special slots -4 and -6 are empty
+  [PASS] provisioning profile names <TEAM>.<bundle-id>, grants App Attest opt-in, no get-task-allow
+
+MATCH: the published app is this source's build. App Attest will report CD hash <h18>
+At runtime the kernel enforces the executable's pages only; the other bundle files are proven for this copy, not for whatever a provider's disk holds later.
+PASS [engine-rebuild] the published app is this source's build on a second Mac, as a second user
+# result: 0 failed
+
+## first run (with the metal shim, kept as the failure record)
+# host <host-b> Mac17,7 27.0-build user=<second-user> uid=501 HOME=~ <date> <time>
+# toolchain Xcode 27.1 Build version 27A9275  metal=Apple metal version 32023.921 (metalfe-32023.921.6)
+# splash commit <h31> engine commit <h32>
+# expect child pin <h17> engine <h18>
+PASS [manifest] all copied files match MANIFEST.sha256
+child unsigned_sha256=<h104> build_id=src-<h40>
+FAIL [child-bytes] unsigned child <h104>, M5 <h33>
+FAIL [child-cdhash] CD hash <h105>, pin <h17>
+PASS [engine-rebuild] the published app is this source's build on a second Mac, as a second user
+# result: 2 failed

@@ -1,0 +1,7 @@
+# P6 child compare (2026-10-25): child used by P6 vs the accepted child 8083a338
+a scratch/ckv-pin-a/splash cdhash <h21> size 3307072 signature_offset 3300368
+b child/splash cdhash 8083a3388742668a68027de726b2a5eaef049ac6 size 3307072 signature_offset 3300368
+same size before signature: True
+differing bytes before the signature: 74 in 2 runs
+  0x788-0x797 (16 bytes) context b: b'\x00\x00\x00\x00\x1b\x00\x00\x00\x18\x00\x00\x00\x8fat\x8b \xe92C\x8c\xd6[\xab\x98\x06\xda\x8b2\x00\x00\x00 \x00\x00\x00\x01\x00\x00'
+  0xcebfe-0xcec3c (63 bytes) context b: b'_metal\x00src-997348af029254a3c4c679c14adb7bae8c9eea8982aef57fde422ff4ea88231b\x00vector\x00boo'

@@ -1,0 +1,2 @@
+Apply sealed-consumer.patch to upstream MorpheusAIs/Morpheus-Lumerin-Node commit
+5cf319e72e52535bd014717ee531495a1cc7e314 (main, PR #855).
