@@ -4,7 +4,7 @@ A one-click way to put a Mac on the [Morpheus](https://mor.org) network as a
 **private** inference provider. The goal: the consumer's router checks which
 engine and which model answer, and the provider cannot read the prompts.
 
-> **Status: v0.1.1 is a source and measurement release. It is not for
+> **Status: v0.1.2 is a source and measurement release. It is not for
 > production use.** No router on the Morpheus network runs the consumer check
 > today, and no outside party can run it against these pins yet (see
 > [Who can check what](#who-can-check-what)). Nothing goes on a Morpheus
@@ -44,7 +44,7 @@ product:
 | Engine CD hash (App Attest) | Withheld in this release (see below) |
 | Model hash (v2: sealed manifest, tokenizer, child CD hash) | `57b2151c5135eb2d7376beab591ad221f6345c8654d8e4220a386747d0bd1477` |
 | Model weights | [`audreyt/Qwen3.8-27B-Splash-abliterated`](https://huggingface.co/audreyt/Qwen3.8-27B-Splash-abliterated) at revision `78a6b379758eb6bf0740ef74581cd3432b144efc` |
-| Source commits (private repos, exported here) | engine `0bd75670`, child `aa32be84`, harness `fd591ad3` |
+| Source commits (private repos, exported here) | engine `0bd75670`, child `aa32be84`, harness `490469c8` |
 
 The pins passed level A (141 of 141) and level B (158 PASS and 4 EXEMPT of 162) on the project's first M5 (`records/accept-results-Mac17,7-27.2-beta-20261026ThhmmssZ.md`), at engine commit `7a83aa51`, child commit `aa32be84` and harness commit `22bcc434`. The table above names the exported commits. Commits after those accept commits change only documents.
 
@@ -84,18 +84,34 @@ This list is a summary. The full list is in the claim.
   claim.
 - **Boot posture and host settings.** No field in the Apple attestation
   certificate shows the boot mode, SIP, swap encryption, or the sleep setting.
-  Three checks cover them instead: (1) the pinned engine (`sealed_posture.c`)
-  refuses to start unless `csr_get_active_config == 0`, `kern.bootargs` is
-  empty, swap is encrypted, `kern.hibernatemode` is 0 or 3, 0 non-Apple kexts
-  are loaded, and `IODeviceTree:/chosen` reports security mode `1,1,1`, and it
-  re-checks SIP, swap and `hibernatemode` before each request inside its
-  sandbox (`boot-posture`, `boot-posture-unit`, mutant `BAD_CSR`); (2) the
-  consumer checks a minimum macOS version (`MinOSVersion = 27.0` default;
-  `refuse-old-macos`); (3) in our M1 tests (macOS 27.0), Apple's App Attest
-  server refused to issue a certificate for a new key in 4 of 4 weakened boots
-  (`Unexpected ACM requirement: 23`) and keys stopped working across every
-  restart (2 of 2). That App Attest behavior is not documented by Apple and
-  has not been re-run across the 12-cell recoveryOS grid (`A-11`) on the M5.
+  The engine gate (`sealed_posture.c`) refuses to start unless
+  `csr_get_active_config == 0`, `kern.bootargs` is empty, swap is encrypted,
+  `kern.hibernatemode` is 0 or 3, 0 non-Apple kexts are loaded, and
+  `IODeviceTree:/chosen` reports security mode `1,1,1`, and it re-checks SIP,
+  swap and `hibernatemode` before each request inside its sandbox
+  (`boot-posture`, `boot-posture-unit`, mutant `BAD_CSR`). The consumer checks
+  a minimum macOS version (`MinOSVersion = 27.0` default; `refuse-old-macos`).
+  On the boot modes the gate cannot see, `records/A11-REDUCED-2026-11-17.md`:
+  on `Mac17,7` with macOS `26B131`, in one paired run, App Attest returned
+  `DCErrorInvalidKey` (DeviceCheck error 3) when attesting a new key in a
+  Reduced boot with SIP fully on. A separate verified Permissive boot with SIP
+  fully on, later the same day, returned the same error for a fresh key. A
+  call-split run in the same Reduced boot showed key generation succeeding, so
+  the failure is in the attestation step. A captured `devicecheckd` log — from
+  a failing attest in the Permissive boot; the Reduced cell's identical error
+  code is inferred, not measured, to share this path — shows an SEP access
+  control (`csec(pslvl(1))`) failing in a 13 ms window, with no network marker
+  in the ~1000 captured lines. `log stream` reported dropped messages, so the
+  capture is incomplete: we read the refusal as local, on evidence of absence
+  rather than proof of absence. A key minted in a Full boot returned a generic
+  error (`DCErrorUnknownSystemFailure`, DeviceCheck error 0) when used after
+  one, two, and three starts in Full and Reduced boots, and a captured log
+  from the one-start run shows the SEP refusing to sign it (`unable to sign
+  digest`, `AKSError=-536362989`), so a key from one boot does not serve in
+  another. The engine's posture output was identical in the Full, Reduced,
+  and Permissive cells, so it cannot distinguish the three on those fields.
+  We found no Apple documentation that App Attest behavior depends on the boot
+  security mode, so it may change without notice.
 - **Length and timing:** root on the provider Mac sees the prompt and reply
   token counts and the timing. The network sees the prompt byte length and
   the reply timing. A refusal status code tells one bit.
@@ -157,7 +173,7 @@ consumer router ──TCP──▶ relay (public host, :3333) ══ tunnel ═�
   opens.
 - **What the relay will see:** ciphertext, its sizes and its timing. The
   relay holds no key.
-- **The listing address:** `<relay-host>:3333`. `docs/INBOUND.md` is not
+- **The listing address:** `<forward-host>:3333`. The design is in `docs/INBOUND.md`. The tunnel is not
   written yet.
 
 ## Open items
@@ -170,7 +186,7 @@ consumer router ──TCP──▶ relay (public host, :3333) ══ tunnel ═�
 | Dedicated App ID, signed engine and its CD hash in a release | Not done |
 | Consumer check in the published router | Not in upstream; patch only |
 | One-click app, wizard and screens | Not started |
-| `docs/INBOUND.md` | Not written |
+| `docs/INBOUND.md` | Written (design); the tunnel and the forward host are not built |
 
 ## License
 

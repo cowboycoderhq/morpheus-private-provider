@@ -8,8 +8,8 @@ account.
 ## Requirements
 
 - A Mac with Apple silicon.
-- Xcode: Xcode 27.1 build 27A9275. The child build ID records the toolchain (SDK
-  27.0 26A425, Apple metal version 32023.921 (metalfe-32023.921.6)), because the same source and flags give different bytes
+- Xcode: Xcode 27.2 build 27B52. The child build ID records the toolchain (SDK
+  27.2 26B118, ), because the same source and flags give different bytes
   with another SDK. The CommandLineTools SDK alone gives other bytes.
 - For step 3: the `hf` command (Hugging Face CLI) and about 18 GB of free disk.
 
